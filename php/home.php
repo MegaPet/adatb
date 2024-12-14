@@ -2,13 +2,17 @@
 session_start();
 include 'connect.php';
 
-if (isset($_SESSION['']) or isset($_POST["log_out"])) {
+if (
+    $_SESSION === null or
+    !isset($_SESSION["EMAIL"])  or
+    isset($_POST["log_out"])
+) {
     logOut();
 }
-
+$EMAIL = $_SESSION["EMAIL"];
 function logOut()
 {
-    global $EMAIL;
+    $EMAIL = $_SESSION["EMAIL"];
     global $conn;
     if (!empty($EMAIL)) {
         $sql = "UPDATE felhasznalok set isBejelentkezve = false WHERE email_felhasznalonev = '$EMAIL'";
@@ -32,9 +36,10 @@ function logOut()
     }
     session_destroy();
     mysqli_close($conn);
-    header("Location: main.php");
+    header("Location: Index.php");
+    exit();
 }
-$EMAIL = $_SESSION["EMAIL"];
+
 $res;
 if (mysqli_select_db($conn, "tankezelo_rendszer")) {
     $sql = "SELECT email_felhasznalonev, nev, szerepkör FROM felhasznalok WHERE email_felhasznalonev = '$EMAIL'";
@@ -46,13 +51,7 @@ if (mysqli_select_db($conn, "tankezelo_rendszer")) {
 }
 $result = mysqli_fetch_assoc($res);
 $NAME = $result["nev"];
-$AUTHORITY = $result["szerepkör"];
-
-
-
-
-
-
+$_SESSION["AUTHORITY"] = $AUTHORITY = $result["szerepkör"];
 
 ?>
 <!DOCTYPE html>
@@ -112,6 +111,14 @@ $AUTHORITY = $result["szerepkör"];
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
 
+        .course ul li {
+            list-style-type: none;
+        }
+
+        .lesson {
+            border-left: #0056A4 solid 0.3rem;
+            padding-left: 0.5rem;
+        }
 
         .form-container h3 {
             margin-top: 0;
@@ -148,28 +155,30 @@ $AUTHORITY = $result["szerepkör"];
         }
 
         .error {
-            position: absolute;
+            position: fixed;
             width: 100%;
             color: red;
             background-color: #f4f4f9;
             border: 1px solid red;
             text-align: center;
-            bottom: 2px;
+            bottom: 0px;
             cursor: pointer;
         }
 
         .success {
-            position: absolute;
+            position: fixed;
             width: 100%;
             color: green;
             background-color: #f4f4f9;
             border: 1px solid green;
             text-align: center;
-            bottom: 2px;
+            bottom: 0px;
             cursor: pointer;
         }
 
-        .error::after {
+
+        .error::after,
+        .success::after {
             content: "[ clikk hogy eltüntesd ]";
         }
 
@@ -208,14 +217,7 @@ $AUTHORITY = $result["szerepkör"];
                 <input type="submit" name="log_out" value="logout">
             </form>
         </div>
-        <div class="form-container">
-            <h2>Diák hozzáadása kurzushoz</h2>
-            <form action="addStudent.php" method="post">
-                <input type="text" placeholder="Kurzus Kód" name="kKod" required>
-                <input type="text" placeholder="Diák emal cím" name="email-felhasznalonev" required>
-                <input type="submit" value="Hozzá ad" name="add">
-            </form>
-        </div>
+
 
 
         <!-- Form Section -->
@@ -224,7 +226,6 @@ $AUTHORITY = $result["szerepkör"];
             <div class="form-container">
                 <h3>Tananyag Kreátor 2000</h3>
                 <form action="lessonCreator.php" method="post">
-                    <input type="text" placeholder="Tananyag azonosítója" name="tananyagAzonosito" required>
                     <input type="text" placeholder="Tananyag neve" name="tananyagNev" required>
                     <input type="number" placeholder="Kurzus Kód" name="kKod" min="0" required>
 
@@ -247,9 +248,16 @@ $AUTHORITY = $result["szerepkör"];
 
                 </form>
             </div>
+            <div class="form-container">
+            <h2>Diák hozzáadása kurzushoz</h2>
+            <form action="addStudent.php" method="post">
+                <input type="text" placeholder="Kurzus Kód" name="kKod" required>
+                <input type="text" placeholder="Diák emal cím" name="email-felhasznalonev" required>
+                <input type="submit" value="Hozzá ad" name="add">
+            </form>
+            </div>
             <div class="courses">
             <h2>Kurzusaid :</h2>
-           
             
             ';
 
@@ -259,45 +267,120 @@ $AUTHORITY = $result["szerepkör"];
             echo $ultimateText;
 
             $sql = "
-            Select Kurzusok.letrehozoFelhasznalo, KurzusNevek.kNevek, Kurzusok.kKod FROM Kurzusok INNER JOIN KurzusNevek
+            Select Kurzusok.letrehozoFelhasznalo, KurzusNevek.kNevek, Kurzusok.kKod, Kurzusok.felEv FROM Kurzusok INNER JOIN KurzusNevek
             ON kurzusok.idNev = KurzusNevek.idNev
-                WHERE Kurzusok.letrehozoFelhasznalo = ?
+            WHERE Kurzusok.letrehozoFelhasznalo = ?
                 ";
             $stmt = $conn->prepare($sql);
             $stmt->bind_param("s", $EMAIL);
             $stmt->execute();
             $invoices_result = $stmt->get_result();
-        ?>
-            <div class="containers"><?php
-                                    while (($row = $invoices_result->fetch_assoc()) != null) { ?>
-                    <div class="containers">
-                        <h3>
-                            <?php echo $row["kNevek"] . " (" . $row["kKod"] . ")" ?>
-                        </h3>
-                        <ul>
-                            <?php
-                                        $sql = 'Select tananyagNev FROM Tananyagok WHERE kKod = ?';
-                                        $stmt2 = $conn->prepare($sql);
-                                        $stmt2->bind_param("i", $row["kKod"]);
-                                        $stmt2->execute();
-                                        $invoices_result2 = $stmt2->get_result();
-                                        while ($row2 = $invoices_result2->fetch_assoc()) {?>
-                                <li>
-                                    <p><strong><?php echo $row2["tananyagNev"]; ?></strong></p>
-                                </li>
-                            <?php
-                                        }
-                            ?>
-                        </ul>
+        ?><?php
+            while (($row = $invoices_result->fetch_assoc()) != null) { ?>
+        <div class="course">
+            <h3>
+                <?php echo $row["kNevek"] . " (" . $row["kKod"] . ")" ?>
+            </h3>
+            <h4><?php echo $row["felEv"] ?></h4>
+            <ul>
+                <?php
+                $sql = 'Select tananyagNev FROM Tananyagok WHERE kKod = ?';
+                $stmt2 = $conn->prepare($sql);
+                $stmt2->bind_param("i", $row["kKod"]);
+                $stmt2->execute();
+                $invoices_result2 = $stmt2->get_result();
+                while ($row2 = $invoices_result2->fetch_assoc()) { ?>
+                    <div class="lesson">
+                        <li>
+                            <p><strong><?php echo $row2["tananyagNev"]; ?></strong></p>
+                        </li>
                         <button>valami</button>
                     </div>
                 <?php
-                                    }
-                ?>
-            </div><?php
                 }
-                    ?>
+                ?>
+            </ul>
+            <h4>
+                diákok:
+            </h4>
+            <ul>
+                <?php
+                $sql = 'Select Felhasznalok.nev, Felhasznalok.email_felhasznalonev FROM felhasznalok
+                RIGHT JOIN KURZUSTANULOK ON felhasznalok.email_felhasznalonev = KURZUSTANULOK.email_felhasznalonev
+                WHERE KURZUSTANULOK.kKod = ?';
+                $stmt2 = $conn->prepare($sql);
+                $stmt2->bind_param("i", $row["kKod"]);
+                $stmt2->execute();
+                $invoices_result2 = $stmt2->get_result();
+                while ($row2 = $invoices_result2->fetch_assoc()) {
+                ?>
+                    <li><?php echo $row2["nev"];
+                        $sql = 'select email_felhasznalonev FROM Felhasznalok
+                                where isBejelentkezve and nev = ?';
+                        $stmt3 = $conn->prepare($sql);
+                        $stmt3->bind_param('s', $row2['nev']);
+                        $stmt3->execute();
+                        $invoices_result3 = $stmt3->get_result();
+                        if ($row3 = $invoices_result3->fetch_assoc()) {
+                        ?>
+                            <?php
+                            echo " ✔️";
+                            ?><?php
+                            }
+                                ?></li>
+                <?php
+                }
+                if ($row2 === false) {
+                    echo "Nem vettél fel még diákot a kurzusra.";
+                }
+                ?>
+            </ul>
+        </div>
+        <?php
+            }
+        ?><?php
+        }
+            ?>
 
+        <?php
+        if ($AUTHORITY === "student") {;
+        ?>
+            <div class="courses">
+                <?php
+                $sql = "SELECT Kurzusok.kKod, felEv, kNevek, kredit FROM Kurzusok 
+                          INNER JOIN KurzusNevek ON KurzusNevek.idNev = kurzusok.idNev
+                          INNER JOIN KURZUSTANULOK ON KURZUSTANULOK.kKod = kurzusok.kKod
+                          WHERE KURZUSTANULOK.email_felhasznalonev = '$EMAIL'";
+                $res = mysqli_query($conn, $sql);
+                while (($row = mysqli_fetch_assoc($res)) != null) { ?>
+
+                    <div class="course">
+                        <h3><?php echo $row["kNevek"] . " (" . $row["kKod"] . ")"; ?></h3>
+                        <h4><?php echo $row["felEv"] ?></h4>
+                        <ul>
+                            <?php
+                            $sql = "Select tananyagNev FROM Tananyagok
+                                      WHERE kKod = " . $row["kKod"];
+                            $res2 = mysqli_query($conn, $sql);
+                            while (($row2 = mysqli_fetch_assoc($res2)) != null) { ?>
+                                <div class="lesson">
+                                    <li>
+                                        <p><strong><?php echo $row2["tananyagNev"]; ?></strong></p>
+                                    </li>
+                                    <button>valami</button>
+                                </div>
+                            <?php
+                            }
+                            ?>
+                        </ul>
+                    </div>
+                <?php
+                }
+                ?>
+            </div>
+        <?php
+        }
+        ?>
 
 
 
@@ -309,20 +392,10 @@ $AUTHORITY = $result["szerepkör"];
         if (isset($_SESSION["success"])) {
             echo '<div class="success" id="success" onClick="eraseSuccess()"><p >' . $_SESSION["success"] . "</p></div>";
         }
-
-
-
-
         $_SESSION["error"] = null;
         $_SESSION["success"] = null;
         ?>
 
-
-        <?php
-        if ($AUTHORITY === "tanulo") {
-            echo "HAIIII";
-        }
-        ?>
         <script>
             function eraseError() {
                 document.getElementById("error").style.display = 'none';

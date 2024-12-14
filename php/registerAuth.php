@@ -44,6 +44,7 @@ if ($PASSWORD === $PASSWORD_C) {
             $result = mysqli_query($conn, $sql) or die("");
 
             header("Location: home.php");
+            exit();
         } else {
             $_SESSION["passError"] = "Foglalt e-mail cím!";
         }
@@ -51,4 +52,5 @@ if ($PASSWORD === $PASSWORD_C) {
 } else {
     $_SESSION["passError"] = "Nem megegyező Jelszó";
 }
+header("Location: Index.php");
 mysqli_close($conn);

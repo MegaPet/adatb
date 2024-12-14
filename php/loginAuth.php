@@ -51,7 +51,7 @@ if (mysqli_select_db($conn, "tankezelo_rendszer")) {
         header("Location: home.php");
     } else {
         $_SESSION["passError"] = "Hibás Jelszó";
-        header("Location: main.php");
+        header("Location: Index.php");
     }
 }
 mysqli_close($conn);

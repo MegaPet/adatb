@@ -127,7 +127,7 @@ session_start()
                 </div>
                 <input type="submit" value="Login">
                 <div class="switch-form">
-                    Don't have an account? <a href="javascript:void(0);" onclick="showRegisterForm()">Register here</a>
+                    Nincs még fiókod? <a href="javascript:void(0);" onclick="showRegisterForm()">Regisztrálj!</a>
                 </div>
             </form>
         </div>
@@ -169,7 +169,7 @@ session_start()
                 </div>
                 <input type="submit" value="Register">
                 <div class="switch-form">
-                    Already have an account? <a href="javascript:void(0);" onclick="showLoginForm()">Login here</a>
+                    Van már fiókod? <a href="javascript:void(0);" onclick="showLoginForm()">Lépj be!</a>
                 </div>
             </form>
         </div>
