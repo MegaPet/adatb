@@ -1,6 +1,5 @@
 <?php
 session_start();
-
 echo var_dump($_SESSION);
 include 'connect.php';
 $PASSWORD = "";

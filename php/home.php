@@ -102,14 +102,17 @@ $_SESSION["AUTHORITY"] = $AUTHORITY = $result["szerepkör"];
             box-shadow: none;
             gap: 0.5rem;
         }
-        .courses ul{
+
+        .courses ul {
             list-style-type: none;
         }
+
         .lessons li,
         .lessons form {
             padding-left: 0.5rem;
         }
-        .diakok{
+
+        .diakok {
             list-style-type: none;
             /* Remove default bullets */
             padding: 0;
@@ -261,7 +264,7 @@ $_SESSION["AUTHORITY"] = $AUTHORITY = $result["szerepkör"];
                 flex-basis: 0;
                 width: 85%;
             }
-            
+
 
         }
     </style>
@@ -292,6 +295,7 @@ $_SESSION["AUTHORITY"] = $AUTHORITY = $result["szerepkör"];
                     <div class="form-container">
                         <h3>Tananyag Kreátor 2000</h3>
                         <form action="lessonCreator.php" method="post">
+                            <input type="hidden" name="szerepkör" value="<?php echo $AUTHORITY ?>">
                             <input type="text" placeholder="Tananyag neve" name="tananyagNev" required>
                             <input type="number" placeholder="Kurzus Kód" name="kKod" min="0" required>
                             <input type="submit" value="Kreál" name="submit">
@@ -306,15 +310,22 @@ $_SESSION["AUTHORITY"] = $AUTHORITY = $result["szerepkör"];
                             <input type="submit" value="submit">
                         </form>
                     </div>
+                    <div class="form-container">
+                        <h2>Diák hozzáadása kurzushoz</h2>
+                        <form action="addStudent.php" method="post">
+                            <input type="text" placeholder="Kurzus Kód" name="kKod" required>
+                            <input type="text" placeholder="Diák emal cím" name="email-felhasznalonev" required>
+                            <input type="submit" value="Hozzá ad" name="add">
+                        </form>
+                    </div>
                 </div>
         </div>
         <div class="courses">
             <?php
                     $sql = "
-            Select Kurzusok.letrehozoFelhasznalo, KurzusNevek.kNevek, Kurzusok.kKod, Kurzusok.felEv FROM Kurzusok INNER JOIN KurzusNevek
-            ON kurzusok.idNev = KurzusNevek.idNev
-            WHERE Kurzusok.letrehozoFelhasznalo = ?
-                ";
+                        Select Kurzusok.letrehozoFelhasznalo, KurzusNevek.kNevek, Kurzusok.kKod, Kurzusok.felEv FROM Kurzusok INNER JOIN KurzusNevek
+                        ON kurzusok.idNev = KurzusNevek.idNev
+                        WHERE Kurzusok.letrehozoFelhasznalo = ?";
                     $stmt = $conn->prepare($sql);
                     $stmt->bind_param("s", $EMAIL);
                     $stmt->execute();
@@ -356,56 +367,59 @@ $_SESSION["AUTHORITY"] = $AUTHORITY = $result["szerepkör"];
                 <ul class="diakok">
                     <?php
                         $sql = 'Select Felhasznalok.nev, Felhasznalok.email_felhasznalonev FROM felhasznalok
-                RIGHT JOIN KURZUSTANULOK ON felhasznalok.email_felhasznalonev = KURZUSTANULOK.email_felhasznalonev
-                WHERE KURZUSTANULOK.kKod = ?';
+                                RIGHT JOIN KURZUSTANULOK ON felhasznalok.email_felhasznalonev = KURZUSTANULOK.email_felhasznalonev
+                                WHERE KURZUSTANULOK.kKod = ?';
                         $stmt2 = $conn->prepare($sql);
                         $stmt2->bind_param("i", $row["kKod"]);
                         $stmt2->execute();
                         $invoices_result2 = $stmt2->get_result();
-                        while ($row2 = $invoices_result2->fetch_assoc()) {
+                        if ($invoices_result2->num_rows > 0) {
+                            while ($row2 = $invoices_result2->fetch_assoc()) {
                     ?>
-                        <li><?php echo $row2["nev"];
-                            $sql = 'select email_felhasznalonev FROM Felhasznalok
-                                where isBejelentkezve and nev = ?';
-                            $stmt3 = $conn->prepare($sql);
-                            $stmt3->bind_param('s', $row2['nev']);
-                            $stmt3->execute();
-                            $invoices_result3 = $stmt3->get_result();
-                            if ($row3 = $invoices_result3->fetch_assoc()) {
-                            ?>
-                                <?php
-                                echo " ✔️";
-                                ?><?php
-                                }
-                                    ?></li>
+                            <li><?php echo $row2["nev"];
+                                $sql = 'select email_felhasznalonev FROM Felhasznalok
+                                    where isBejelentkezve and nev = ?';
+                                $stmt3 = $conn->prepare($sql);
+                                $stmt3->bind_param('s', $row2['nev']);
+                                $stmt3->execute();
+                                $invoices_result3 = $stmt3->get_result();
+                                if ($row3 = $invoices_result3->fetch_assoc()) {
+                                ?>
+                                    <?php
+                                    echo " ✔️";
+                                    ?><?php
+                                    }
+                                        ?></li>
+
+                        <?php
+                            }
+                        } else {
+                        ?>
+                        <li><?php echo "Még nem vettél fel diákot" ?></li>
                     <?php
-                        }
-                        if ($row2 === false) {
-                            echo "Nem vettél fel még diákot a kurzusra.";
                         }
                     ?>
                 </ul>
-            </div>
-        <?php
+            </div><?php
                     }
-        ?>
-
-        </div>
-    <?php
                 }
-    ?>
-    <?php
-    if ($AUTHORITY === "student") {;
-    ?>
+                    ?>
+        </div>
+        <?php
+
+        ?>
+        <?php
+        if ($AUTHORITY === "student") {;
+        ?>
     </div>
     <div class="courses">
         <?php
-        $sql = "SELECT Kurzusok.kKod, felEv, kNevek, kredit FROM Kurzusok 
+            $sql = "SELECT Kurzusok.kKod, felEv, kNevek, kredit FROM Kurzusok 
                           INNER JOIN KurzusNevek ON KurzusNevek.idNev = kurzusok.idNev
                           INNER JOIN KURZUSTANULOK ON KURZUSTANULOK.kKod = kurzusok.kKod
                           WHERE KURZUSTANULOK.email_felhasznalonev = '$EMAIL'";
-        $res = mysqli_query($conn, $sql);
-        while (($row = mysqli_fetch_assoc($res)) != null) { ?>
+            $res = mysqli_query($conn, $sql);
+            while (($row = mysqli_fetch_assoc($res)) != null) { ?>
 
             <div class="course">
                 <h3><?php echo $row["kNevek"] . " (" . $row["kKod"] . ")"; ?></h3>
@@ -434,11 +448,11 @@ $_SESSION["AUTHORITY"] = $AUTHORITY = $result["szerepkör"];
                 </ul>
             </div>
         <?php
-        }
+            }
         ?>
     </div>
 <?php
-    }
+        }
 ?>
 </div>
 </div> <!--all -->

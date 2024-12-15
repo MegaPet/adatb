@@ -65,7 +65,7 @@ if (isset($_SESSION["EMAIL"]) and isset($_POST["tananyagNev"]) and isset($_POST[
             color: #333;
             margin: 0;
             padding: 0;
-            display: flex;
+            display: flex;justify-content: space-around;
             flex-direction: column;
             align-items: center;
         }
@@ -84,19 +84,19 @@ if (isset($_SESSION["EMAIL"]) and isset($_POST["tananyagNev"]) and isset($_POST[
             border-radius: 8px;
         }
 
-        input[type="button"] {
-            display: inline-block;
-            text-align: center;
-            margin: 20px auto;
-            padding: 10px 20px;
-            background-color: #4CAF50;
+        input[type="submit"] {
+            background-color: green;
             color: white;
-            text-decoration: none;
-            font-size: 18px;
-            border-radius: 5px;
-            transition: background-color 0.3s ease;
             border: none;
+            padding: 10px 20px;
+            font-size: 16px;
             cursor: pointer;
+            border-radius: 5px;
+            margin-top: 0.5rem;
+        }
+
+        input[type="submit"]:hover {
+            background-color: darkgreen;
         }
 
         a:hover {

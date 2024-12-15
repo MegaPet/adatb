@@ -17,7 +17,7 @@ if ($_SESSION["AUTHORITY"] === "teacher") {
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("s", $K_KOD);
 $stmt->execute();
-$KURZUS_NEV;
+$KURZUS_NEV = null;
 $row = $stmt->get_result()->fetch_assoc();
 if ($row) {
   global $row;
@@ -68,5 +68,7 @@ if (
   } else {
     $_SESSION["error"] = "Sikertelen diák hozzáadás";
   }
-  header("Location: home.php");
+}else{
+  $_SESSION["error"] = "Nincs ilyen kurzusod, nem tudsz diákot hozzá adni más álltal létrehozott, vagy nem létező kurzushoz.";
 }
+header("Location: home.php");

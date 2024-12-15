@@ -107,26 +107,26 @@ FROM
 WHERE
     KURZUSTANULOK.email_felhasznalonev = "t1@gmail.com"
     --@block valami2
-INSERT INTO
-    napló (
-        email_felhasznalonev,
-        tananyagAzonosito,
-        mikor,
-        miMuvelet,
-        kurzusKod
+Select
+    kNevek
+From
+    KurzusNevek
+WHERE
+    EXISTS (
+        Select
+            letrehozoFelhasznalo
+        from
+            kurzusok
+        WHERE
+            Kurzusok.idNev = KurzusNevek.idNev
+            AND letrehozoFelhasznalo = "tanitanikellmertehendoglok@gmail.com"
+            AND Kurzusok.kKod = 1
     )
-VALUES
-    (
-        'szeretlekmukesz@babmail.com',
-        1,
-        '2024-12-14 10:26:00',
-        'szeretlekmukesz@babmail.com felhasználó bezárta a követekező tananyagot : Nyálfolyatás',
-        4
-    );
-
---@block valami3
+    --@block valami3
 DELETE FROM Felhasznalok
-where szerepkör = "tanuló" or szerepkör = "oktató"
+where
+    szerepkör = "tanuló"
+    or szerepkör = "oktató"
     --@block TERMINATUS
     -- !    TERMINATUS    !
 DROP TABLE napló
