@@ -67,7 +67,7 @@ CREATE TABLE
         FOREIGN KEY (kurzusKod) REFERENCES Kurzusok (kKod)
     );
 
-    --@block Group by
+--@block Group by
 SELECT
     count(KurzusNevek.knevek),
     Kurzusok.letrehozoFelhasznalo
@@ -94,19 +94,39 @@ FROM
     INNER JOIN KurzusNevek ON kurzusok.idNev = KurzusNevek.idNev
 WHERE
     Kurzusok.letrehozoFelhasznalo = "jagerpeter04@gmail.com"
---@block valami
-SELECT Kurzusok.kKod, felEv, kNevek, kredit FROM Kurzusok 
-INNER JOIN KurzusNevek ON KurzusNevek.idNev = kurzusok.idNev
-INNER JOIN KURZUSTANULOK ON KURZUSTANULOK.kKod = kurzusok.kKod
-WHERE KURZUSTANULOK.email_felhasznalonev = "t1@gmail.com"
+    --@block valami
+SELECT
+    Kurzusok.kKod,
+    felEv,
+    kNevek,
+    kredit
+FROM
+    Kurzusok
+    INNER JOIN KurzusNevek ON KurzusNevek.idNev = kurzusok.idNev
+    INNER JOIN KURZUSTANULOK ON KURZUSTANULOK.kKod = kurzusok.kKod
+WHERE
+    KURZUSTANULOK.email_felhasznalonev = "t1@gmail.com"
+    --@block valami2
+INSERT INTO
+    napló (
+        email_felhasznalonev,
+        tananyagAzonosito,
+        mikor,
+        miMuvelet,
+        kurzusKod
+    )
+VALUES
+    (
+        'szeretlekmukesz@babmail.com',
+        1,
+        '2024-12-14 10:26:00',
+        'szeretlekmukesz@babmail.com felhasználó bezárta a követekező tananyagot : Nyálfolyatás',
+        4
+    );
 
---@block valami2
-Select tananyagNev FROM Tananyagok
-WHERE kKod = 4
-
-
-
-
---@block TERMINATUS
+--@block valami3
+DELETE FROM Felhasznalok
+where szerepkör = "tanuló" or szerepkör = "oktató"
+    --@block TERMINATUS
     -- !    TERMINATUS    !
-DROP TABLE 
+DROP TABLE napló
